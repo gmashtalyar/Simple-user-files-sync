@@ -28,7 +28,7 @@ go install github.com/fyne-io/fyne-cross@latest
 Поместите файл Icon.png в корневой каталог вашего проекта.
 
 
-# Сборка для Windows
+# Сборка simple_main для Windows
 1. Перейдите в каталог проекта: Убедитесь, что вы находитесь в каталоге simple_main, где расположен ваш файл main.go.
 
 2. Выполните команду fyne-cross для сборки для Windows:
@@ -43,7 +43,7 @@ fyne-cross/bin/windows-amd64/simple_main.exe
 ```bash
 simple_main.exe.
 ```
-# Сборка для macOS
+# Сборка simple_main для macOS
 1. Перейдите в каталог проекта: Убедитесь, что вы находитесь в каталоге simple_main, где расположен ваш файл main.go.
 
 2. Выполните команду fyne-cross для сборки для macOS:
@@ -59,4 +59,12 @@ fyne-cross/bin/darwin-arm64/simple_main.app
 fyne-cross/dist/darwin-arm64/simple_main.zip
 ```
 
- # P.S. при возникновении проблем или потребности в доработке обращайтесь к GPT. 
+# Сборка simple_sync для macOS
+1. Перейдите в каталог проекта: Убедитесь, что вы находитесь в каталоге sync_task, где расположен ваш файл sync_task.go.
+2. Выполните команду для сборки executable для macOS:
+```bash
+go build -o sync_task  
+```
+3. Разместите sync_task в папке, где нужна синхронизация.
+
+ #### P.S. при возникновении проблем или потребности в доработке обращайтесь к GPT. 

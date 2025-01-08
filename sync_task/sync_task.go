@@ -3,9 +3,11 @@ package main
 import (
 	"encoding/base64"
 	"fmt"
+	"net/http"
 	"net/smtp"
 	"os"
 	"path/filepath"
+	"time"
 )
 
 func main() {
@@ -39,7 +41,7 @@ func sendEmail(filePath, organization string) {
 	from := "FROM"
 	to := "TO"
 	subject := organization
-	body := "Please find attached the daily report from."
+	body := "Please find attached the daily report."
 
 	message := fmt.Sprintf("From: %s\r\n", from)
 	message += fmt.Sprintf("To: %s\r\n", to)
@@ -78,14 +80,27 @@ func sendEmail(filePath, organization string) {
 	smtpPort := "smtpPort"
 	auth := smtp.PlainAuth("", from, "PASSWORD", smtpHost)
 
-	err = smtp.SendMail(smtpHost+":"+smtpPort, auth, from, []string{to}, []byte(message))
-	if err != nil {
-		fmt.Println("Error sending email:", err)
-	} else {
-		fmt.Println("Email sent successfully!")
+	for {
+		if checkInternetConnection() {
+			err = smtp.SendMail(smtpHost+":"+smtpPort, auth, from, []string{to}, []byte(message))
+			if err != nil {
+				fmt.Println("Error sending email:", err)
+			} else {
+				fmt.Println("Email sent successfully!")
+			}
+			break
+		} else {
+			fmt.Println("No internet connection. Retrying in 5 minutes...")
+			time.Sleep(5 * time.Minute)
+		}
 	}
 }
 
 func encodeBase64(data []byte) string {
 	return base64.StdEncoding.EncodeToString(data)
+}
+
+func checkInternetConnection() bool {
+	_, err := http.Get("http://www.google.com")
+	return err == nil
 }

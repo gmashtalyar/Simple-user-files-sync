@@ -17,6 +17,7 @@ import (
 
 var (
 	selectedDir       string
+	emailHint         *widget.Label
 	statusText        *widget.Label
 	selectedDays      []string
 	selectedTime      string
@@ -38,9 +39,10 @@ func main() {
 		}, myWindow)
 	})
 
-	organizationButton := widget.NewButton("2. Введите название организации", func() {
+	organizationButton := widget.NewButton("2. Укажите вашу корпоративную почту", func() {
 		openOrganizationWindow(myApp)
 	})
+	emailHint = widget.NewLabel("Необходимо, чтобы определить организацию.")
 
 	dateTimeButton := widget.NewButton("3. Сделайте выбор времени и дней", func() {
 		openDateTimeWindow(myApp)
@@ -73,6 +75,7 @@ func main() {
 	myWindow.SetContent(container.NewVBox(
 		dirButton,
 		organizationButton,
+		emailHint,
 		dateTimeButton,
 		startDaemonButton,
 		stopDaemonButton,
@@ -83,18 +86,19 @@ func main() {
 }
 
 func openOrganizationWindow(app fyne.App) {
-	organizationWindow := app.NewWindow("Введите название организации")
+	organizationWindow := app.NewWindow("Укажите вашу корпоративную почту")
 
 	organizationEntry = widget.NewEntry()
-	organizationEntry.SetPlaceHolder("Введите название организации")
+	organizationEntry.SetPlaceHolder("Укажите вашу корпоративную почту")
 
 	setButton := widget.NewButton("Установить", func() {
 		organization = organizationEntry.Text
 		if organization == "" {
-			dialog.ShowInformation("Ошибка", "Пожалуйста введите название организации", organizationWindow)
+			dialog.ShowInformation("Ошибка", "Пожалуйста укажите вашу корпоративную почту", organizationWindow)
 			return
 		}
-		statusText.SetText(fmt.Sprintf("Организация: %s", organization))
+		domain := extractDomain(organization)
+		statusText.SetText(fmt.Sprintf("Организация: %s", domain))
 		organizationWindow.Close()
 	})
 
@@ -193,19 +197,22 @@ func setupMacOSLaunchAgent() {
 	hour := timeParts[0]
 	minute := timeParts[1]
 
+	syncTaskPath := filepath.Join(selectedDir, "sync_task")
 	plistContent := fmt.Sprintf(`<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
+	<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+	<plist version="1.0">
+	<dict>
     <key>Label</key>
     <string>com.simpleboard.emailscheduler</string>
     <key>ProgramArguments</key>
     <array>
         <string>%s</string>
         <string>%s</string>
+        <string>%s</string>
     </array>
     <key>StartCalendarInterval</key>
-    <array>`, filepath.Join(selectedDir, "sync_task"), organization)
+    <array>`, syncTaskPath, selectedDir, organization)
+
 	for _, day := range selectedDays {
 		plistContent += fmt.Sprintf(`
         <dict>
@@ -219,10 +226,10 @@ func setupMacOSLaunchAgent() {
 	}
 	plistContent += `
     </array>
-	<key>StartInterval</key>
-	<integer>900</integer>
-</dict>
-</plist>`
+	<key>WakeForEvent</key>
+    <true/>
+	</dict>
+	</plist>`
 
 	err := os.WriteFile(plistPath, []byte(plistContent), 0644)
 	if err != nil {
@@ -242,19 +249,27 @@ func setupMacOSLaunchAgent() {
 func mapDayToInteger(day string) int {
 	switch day {
 	case "Понедельник":
-		return 2
-	case "Вторник":
-		return 3
-	case "Среда":
-		return 4
-	case "Четверг":
-		return 5
-	case "Пятница":
-		return 6
-	case "Суббота":
-		return 7
-	case "Воскресение":
 		return 1
+	case "Вторник":
+		return 2
+	case "Среда":
+		return 3
+	case "Четверг":
+		return 4
+	case "Пятница":
+		return 5
+	case "Суббота":
+		return 6
+	case "Воскресение":
+		return 7
 	}
 	return 0
+}
+
+func extractDomain(email string) string {
+	parts := strings.Split(email, "@")
+	if len(parts) > 1 {
+		return parts[1]
+	}
+	return ""
 }
