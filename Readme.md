@@ -12,15 +12,16 @@
 ## Предварительные требования
 
 1. **Go (1.18+):** Убедитесь, что у вас установлен Go. Вы можете проверить установку, выполнив команду:
+```bash
    go version
-
+```
 Если Go не установлен, следуйте инструкциям по установке на официальном сайте Go.
 
 2.	Fyne и Fyne-Cross:
 	•	Установите Fyne:
-
+```bash
 go install github.com/fyne-io/fyne-cross@latest
-
+```
 3.	Иконка:
 Поместите файл Icon.png в корневой каталог вашего проекта.
 
@@ -29,25 +30,31 @@ go install github.com/fyne-io/fyne-cross@latest
 1. Перейдите в каталог проекта: Убедитесь, что вы находитесь в каталоге simple_main, где расположен ваш файл main.go.
 
 2. Выполните команду fyne-cross для сборки для Windows:
+```bash
 fyne-cross windows -output simple_main.exe --app-id com.simpleboard.simple_main --icon Icon.png
-
+```
 3.	Результат: После завершения сборки исполняемый файл будет доступен в следующем каталоге:
+```bash
 fyne-cross/bin/windows-amd64/simple_main.exe
-
-4.	Распростронение: Теперь вы можете распространять файл simple_main.exe.
-
+```
+4.	Распростронение: Теперь вы можете распространять файл 
+```bash
+simple_main.exe.
+```
 # Сборка для macOS
 1. Перейдите в каталог проекта: Убедитесь, что вы находитесь в каталоге simple_main, где расположен ваш файл main.go.
 
 2. Выполните команду fyne-cross для сборки для macOS:
+```bash
 fyne-cross darwin -output simple_main --app-id com.simpleboard.simple_main --icon Icon.png
-
+```
 3.	Результат: После завершения сборки пакет .app будет доступен в следующем каталоге:
+```bash
 fyne-cross/bin/darwin-arm64/simple_main.app
-
+```
 4.	Распределение: Вы можете упаковать пакет .app в zip-архив и распространять zip-файл:
-
+```bash
 fyne-cross/dist/darwin-arm64/simple_main.zip
-
+```
 
  # P.S. при возникновении проблем или потребности в доработке обращайтесь к GPT. 
