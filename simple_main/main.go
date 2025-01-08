@@ -137,6 +137,8 @@ func setupWindowsTaskScheduler() {
 		"/SC", "WEEKLY",
 		"/D", days,
 		"/ST", time,
+		"/RI", "15",
+		"/DU", "24:00",
 		"/RL", "HIGHEST",
 	)
 	err := cmd.Run()
@@ -178,6 +180,8 @@ func setupMacOSLaunchAgent() {
 	}
 	plistContent += `
 	</array>
+	<key>StartInterval</key>
+	<integer>900</integer>
 </dict>
 </plist>`
 
