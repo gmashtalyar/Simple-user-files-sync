@@ -16,17 +16,20 @@ import (
 )
 
 var (
-	selectedDir  string
-	statusText   *widget.Label
-	selectedDays []string
-	selectedTime string
+	selectedDir       string
+	statusText        *widget.Label
+	selectedDays      []string
+	selectedTime      string
+	organization      string
+	organizationEntry *widget.Entry
 )
 
 func main() {
 	myApp := app.NewWithID("com.simpleboard.simple_main")
-	myWindow := myApp.NewWindow("SimpleBoard Synchronization")
+	myWindow := myApp.NewWindow("SimpleBoard Синхронизация")
+	myWindow.Resize(fyne.NewSize(600, 200))
 
-	dirButton := widget.NewButton("Сделайте выбор папки", func() {
+	dirButton := widget.NewButton("1. Сделайте выбор папки", func() {
 		dialog.ShowFolderOpen(func(uri fyne.ListableURI, err error) {
 			if err == nil && uri != nil {
 				selectedDir = uri.Path()
@@ -35,17 +38,25 @@ func main() {
 		}, myWindow)
 	})
 
-	dateTimeButton := widget.NewButton("Сделайте выбор времени и дней", func() {
+	organizationButton := widget.NewButton("2. Введите название организации", func() {
+		openOrganizationWindow(myApp)
+	})
+
+	dateTimeButton := widget.NewButton("3. Сделайте выбор времени и дней", func() {
 		openDateTimeWindow(myApp)
 	})
 
-	startDaemonButton := widget.NewButton("Начать синхронизацию", func() {
+	startDaemonButton := widget.NewButton("4. Начать синхронизацию", func() {
 		if selectedDir == "" {
 			dialog.ShowInformation("Ошибка", "Пожалуйста сделайте выбор папки", myWindow)
 			return
 		}
 		if len(selectedDays) == 0 || selectedTime == "" {
 			dialog.ShowInformation("Ошибка", "Пожалуйтса сделайте выбор времени и дней синхронизации", myWindow)
+			return
+		}
+		if organization == "" {
+			dialog.ShowInformation("Ошибка", "Пожалуйста введите название организации", myWindow)
 			return
 		}
 		startDaemon()
@@ -61,6 +72,7 @@ func main() {
 
 	myWindow.SetContent(container.NewVBox(
 		dirButton,
+		organizationButton,
 		dateTimeButton,
 		startDaemonButton,
 		stopDaemonButton,
@@ -68,6 +80,31 @@ func main() {
 	))
 
 	myWindow.ShowAndRun()
+}
+
+func openOrganizationWindow(app fyne.App) {
+	organizationWindow := app.NewWindow("Введите название организации")
+
+	organizationEntry = widget.NewEntry()
+	organizationEntry.SetPlaceHolder("Введите название организации")
+
+	setButton := widget.NewButton("Установить", func() {
+		organization = organizationEntry.Text
+		if organization == "" {
+			dialog.ShowInformation("Ошибка", "Пожалуйста введите название организации", organizationWindow)
+			return
+		}
+		statusText.SetText(fmt.Sprintf("Организация: %s", organization))
+		organizationWindow.Close()
+	})
+
+	organizationWindow.SetContent(container.NewVBox(
+		widget.NewLabel("Введите название организации:"),
+		organizationEntry,
+		setButton,
+	))
+
+	organizationWindow.Show()
 }
 
 func openDateTimeWindow(app fyne.App) {
@@ -79,7 +116,7 @@ func openDateTimeWindow(app fyne.App) {
 	timeEntry := widget.NewEntry()
 	timeEntry.SetPlaceHolder("Введине время в формате ЧЧ:ММ")
 
-	setButton := widget.NewButton("Set", func() {
+	setButton := widget.NewButton("Установить", func() {
 		selectedDays = daysSelect.Selected
 		selectedTime = timeEntry.Text
 		if len(selectedDays) == 0 || selectedTime == "" {
@@ -140,6 +177,7 @@ func setupWindowsTaskScheduler() {
 		"/RI", "15",
 		"/DU", "24:00",
 		"/RL", "HIGHEST",
+		"/ARG", organization,
 	)
 	err := cmd.Run()
 	if err != nil {
@@ -159,27 +197,28 @@ func setupMacOSLaunchAgent() {
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>Label</key>
-	<string>com.simpleboard.emailscheduler</string>
-	<key>ProgramArguments</key>
-	<array>
-		<string>%s</string>
-	</array>
-	<key>StartCalendarInterval</key>
-	<array>`, filepath.Join(selectedDir, "sync_task"))
+    <key>Label</key>
+    <string>com.simpleboard.emailscheduler</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>%s</string>
+        <string>%s</string>
+    </array>
+    <key>StartCalendarInterval</key>
+    <array>`, filepath.Join(selectedDir, "sync_task"), organization)
 	for _, day := range selectedDays {
 		plistContent += fmt.Sprintf(`
-		<dict>
-			<key>Weekday</key>
-			<integer>%d</integer>
-			<key>Hour</key>
-			<integer>%s</integer>
-			<key>Minute</key>
-			<integer>%s</integer>
-		</dict>`, mapDayToInteger(day), hour, minute)
+        <dict>
+            <key>Weekday</key>
+            <integer>%d</integer>
+            <key>Hour</key>
+            <integer>%s</integer>
+            <key>Minute</key>
+            <integer>%s</integer>
+        </dict>`, mapDayToInteger(day), hour, minute)
 	}
 	plistContent += `
-	</array>
+    </array>
 	<key>StartInterval</key>
 	<integer>900</integer>
 </dict>

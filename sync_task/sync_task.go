@@ -9,18 +9,23 @@ import (
 )
 
 func main() {
+	if len(os.Args) < 3 {
+		fmt.Println("Usage: sync_task <directory_path> <organization>")
+		return
+	}
 	directoryPath := os.Args[1]
-	sendEmailWithAttachment(directoryPath)
+	organization := os.Args[2]
+	sendEmailWithAttachment(directoryPath, organization)
 }
 
-func sendEmailWithAttachment(filePath string) {
-	err := filepath.Walk(filePath, func(path string, info os.FileInfo, err error) error {
+func sendEmailWithAttachment(directoryPath, organization string) {
+	err := filepath.Walk(directoryPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			fmt.Println("Error walking the path", path, err)
 			return err
 		}
 		if !info.IsDir() && (filepath.Ext(path) == ".xlsx" || filepath.Ext(path) == ".csv") {
-			sendEmail(path)
+			sendEmail(path, organization)
 		}
 		return nil
 	})
@@ -30,11 +35,11 @@ func sendEmailWithAttachment(filePath string) {
 	}
 }
 
-func sendEmail(filePath string) {
+func sendEmail(filePath, organization string) {
 	from := "FROM"
 	to := "TO"
-	subject := "SimpleBoard - Daily Report"
-	body := "Please find attached the daily report."
+	subject := organization
+	body := "Please find attached the daily report from."
 
 	message := fmt.Sprintf("From: %s\r\n", from)
 	message += fmt.Sprintf("To: %s\r\n", to)
