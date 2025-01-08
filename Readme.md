@@ -5,10 +5,7 @@
 **simple_task** - это SMTP чтобы настроить передачу файлов по почте. См. email credentials.
 
 Поддерживаются Windows & MacOS. Для Linux пользователей такой потребности нет.
-
 ![App Screenshot](app_screenshot.png)
-![Cron Screenshot](cron_screenshot.png)
-
 
 ## Руководство по сборке
 Это руководство поможет вам создать исполняемые файлы для Windows и macOS с использованием Fyne и `fyne-cross`. Вам нужно будет настроить окружение, собрать исполняемые файлы и упаковать их.
